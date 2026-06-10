@@ -1,4 +1,4 @@
-# Detekcija finansijskih prevara pomoću neuronskih mreža
+# Primena neuronskih mreža za predvidjanje prevara u finansijama (credit card fraud)
 
 Tema projekta je automatska detekcija prevarnih transakcija kreditnih kartica pomoću neuronskih mreža. Sistem na osnovu numeričkih obeležja transakcije predviđa da li je ona legitimna ili lažna, na primer:
 
