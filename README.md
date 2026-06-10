@@ -253,7 +253,7 @@ Keras Tuner je pronašao sledeće optimalne vrednosti minimizacijom `val_loss` n
 | Dropout 2 | 0.2 |
 | Learning rate | 0.0001 |
 
-Rezultati pokazuju da povećanje složenosti modela ne mora automatski da dovede do boljeg rezultata — bitno je pažljivo podešavati arhitekturu i pratiti validacione rezultate.
+Rezultati pokazuju da izbor hiperparametara ima značajan uticaj na performanse modela, zbog čega je neophodno pažljivo podešavanje arhitekture i praćenje validacionih rezultata.
 
 Na osnovu pronađenih vrednosti formiran je konačni model (Model 3), koji je kasnije korišćen za završnu evaluaciju i proglašen najboljim modelom u projektu.
 
