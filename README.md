@@ -31,7 +31,7 @@ V1=-1.36, V2=0.07, ..., Amount=149.62
 Predviđena klasa:
 
 ```
-1 — Prevarna transakcija
+0 — Regularna transakcija
 ```
 
 Ovakav sistem može da pomogne u:
