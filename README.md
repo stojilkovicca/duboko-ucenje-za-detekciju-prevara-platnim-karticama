@@ -291,6 +291,23 @@ Korišćene metrike:
 
 **Model 3 (Keras Tuner):** Neznatno bolji Recall od Modela 1 (82.65% vs 81.63%) uz zadržan visok Precision (81.00%). Metodološki najjači pristup zahvaljujući sistematskoj pretrazi hiperparametara.
 
+## Konfuziona matrica
+
+Za najbolji model prikazana je konfuziona matrica koja omogućava detaljniji uvid u tačne i pogrešne klasifikacije.
+
+Dobijeni rezultati:
+
+- TN = 56845
+- FP = 19
+- FN = 17
+- TP = 81
+
+pokazuju da model veoma uspešno razlikuje regularne i prevarne transakcije.
+
+Broj lažno pozitivnih klasifikacija (19) i broj lažno negativnih klasifikacija (17) ostali su veoma niski. Posebno su značajne lažno negativne klasifikacije, jer predstavljaju prevarne transakcije koje model nije uspeo da prepozna.
+
+Dobijena konfuziona matrica potvrđuje visok Precision (81.00%) i Recall (82.65%), kao i dobru sposobnost modela da detektuje prevarne transakcije uz mali broj grešaka.
+
 ### Poređenje ROC krivih
 
 Slične ROC-AUC vrednosti ukazuju da sva tri modela ostvaruju veoma sličnu sposobnost razdvajanja klasa. Razlike u Precision i Recall metrikama posledica su različitog tretiranja neuravnoteženosti i različitog položaja odlučne granice.
