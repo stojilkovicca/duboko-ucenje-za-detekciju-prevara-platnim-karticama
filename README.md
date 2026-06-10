@@ -226,7 +226,23 @@ ROC krive sva tri modela su praktično identične (AUC ≈ 0.98). To dokazuje da
 
 ---
 
-## 6. Zaključak
+## 6. Diskusija
+
+Rezultati pokazuju da se detekcija prevara kreditnih kartica može uspešno rešiti feedforward neuronskim mrežama čak i bez naprednih tehnika balansiranja klasa.
+
+Model 1 (Osnovni) ostvario je iznenađujuće dobre rezultate bez ikakvih posebnih tehnika za tretiranje neuravnoteženosti. To pokazuje da je dataset, uprkos ekstremnoj neuravnoteženosti, dovoljno informativan — PCA transformisana obeležja V1–V28 nose dovoljno signala za razdvajanje klasa.
+
+Model 2 sa class weights pokazuje klasičan trade-off između Recall-a i Precision-a. Dodela visokih težina manjinskoj klasi naterala je model da bude preoprezan i da gotovo sve transakcije proglašava prevarom. U realnom scenariju to bi značilo masovno blokiranje legitimnih transakcija, što je neprihvatljivo. Važno zapažanje je da class weights nisu promenili šta je model naučio — ROC-AUC ostaje identičan kao kod Modela 1 (~98%), što znači da su naučene reprezentacije iste. Razlika nastaje isključivo u pomeranju odlučne granice.
+
+Model 3 sa Keras Tuner-om potvrđuje da sistematska pretraga hiperparametara donosi merljivo poboljšanje. Poboljšanje Recall-a sa 81.63% na 82.65% uz zadržan Precision nije dramatično, ali je metodološki važno — pokazuje da nasumično odabrani hiperparametri nisu optimalni i da postoji prostor za poboljšanje kroz pretragu.
+
+Još jedan važan nalaz je identičnost ROC krivih sva tri modela. Sve tri krive su praktično nerazlučive na grafiku (AUC: 0.9807, 0.9809, 0.9805), što direktno dokazuje da razlika u tabelarnim metrikama nije posledica razlike u naučenom znanju, već razlike u načinu tretiranja neuravnoteženosti i položaju odlučne granice.
+
+Moguća unapređenja projekta su navedena u posebnoj sekciji na kraju dokumenta.
+
+---
+
+## 7. Zaključak
 
 Najbolji model je:
 
@@ -249,7 +265,7 @@ Sačuvani fajlovi:
 
 ---
 
-## 7. Moguća unapređenja
+## 8. Moguća unapređenja
 
 - primena SMOTE tehnike za sintetičko balansiranje klasa,
 - istraživanje optimalnog praga odluke umesto fiksnog 0.5,
@@ -260,7 +276,7 @@ Sačuvani fajlovi:
 
 ---
 
-## 8. Pokretanje projekta
+## 9. Pokretanje projekta
 
 Projekat je namenjen za pokretanje u Google Colab okruženju.
 
@@ -305,7 +321,7 @@ Notebook će zatim:
 
 ---
 
-## 9. Korišćene biblioteke
+## 10. Korišćene biblioteke
 
 | Biblioteka | Uloga |
 |------------|-------|
@@ -318,7 +334,6 @@ Notebook će zatim:
 | Matplotlib | Vizualizacija |
 | Seaborn | Vizualizacija |
 | joblib | Čuvanje scaler objekta |
-
 ---
 
 ## Autor
