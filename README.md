@@ -197,6 +197,27 @@ Korišćeni elementi treninga:
 - epochs: `20`
 - EarlyStopping (monitor: `val_loss`, patience: `3`, restore_best_weights: `True`)
 
+### EarlyStopping
+
+Korišćen je EarlyStopping callback kako bi se treniranje automatski zaustavilo kada se validacioni gubitak više ne poboljšava.
+
+Korišćena konfiguracija:
+
+- monitor = val_loss
+- patience = 3
+- restore_best_weights = True
+
+Na taj način se smanjuje rizik od overfitting-a i sprečava nepotrebno treniranje modela nakon prestanka poboljšanja.
+
+### Grafikoni treninga
+
+Za svaki model prikazani su:
+
+- trening i validaciona tačnost,
+- trening i validacioni gubitak.
+
+Grafikoni su korišćeni za praćenje procesa učenja i detekciju mogućeg overfitting-a.
+
 Fiksiran je seed (42) na svim nivoima (`random`, `numpy`, `tensorflow`) radi reproduktibilnosti rezultata.
 
 ---
