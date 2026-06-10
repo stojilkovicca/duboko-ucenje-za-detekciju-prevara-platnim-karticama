@@ -1,6 +1,6 @@
-# Detekcija Prevara Kreditnih Kartica pomoću Neuronskih Mreža
+# Detekcija finansijskih prevara pomoću neuronskih mreža
 
-Tema projekta je automatska detekcija fraudulentnih transakcija kreditnih kartica pomoću neuronskih mreža. Sistem na osnovu numeričkih obeležja transakcije predviđa da li je ona legitimna ili lažna, na primer:
+Tema projekta je automatska detekcija prevarnih transakcija kreditnih kartica pomoću neuronskih mreža. Sistem na osnovu numeričkih obeležja transakcije predviđa da li je ona legitimna ili lažna, na primer:
 
 Ulaz: Vektor od 30 obeležja transakcije (V1–V28, scaled_Amount, scaled_Time)
 
@@ -16,9 +16,9 @@ Notebook obuhvata kompletan tok rada: učitavanje podataka, analizu i vizualizac
 
 ## 1. Opis problema
 
-Detekcija prevara kreditnih kartica predstavlja problem binarne klasifikacije na visoko neuravnoteženom datasetu.
+Detekcija prevarnih transakcija kreditnih kartica predstavlja problem binarne klasifikacije na visoko neuravnoteženom datasetu.
 
-U realnom platnom sistemu, svaka transakcija se procenjuje i klasifikuje kao legitimna ili lažna. Cilj ovog projekta je da se napravi model koji automatski prepoznaje fraudulentne transakcije na osnovu numeričkih obeležja.
+U realnom platnom sistemu, svaka transakcija se procenjuje i klasifikuje kao legitimna ili lažna. Cilj ovog projekta je da se napravi model koji automatski prepoznaje prevarne transakcije na osnovu numeričkih obeležja.
 
 Primer:
 
@@ -31,7 +31,7 @@ V1=-1.36, V2=0.07, ..., Amount=149.62
 Predviđena klasa:
 
 ```
-0 — Regularna transakcija
+1 — Prevarna transakcija
 ```
 
 Ovakav sistem može da pomogne u:
@@ -41,7 +41,7 @@ Ovakav sistem može da pomogne u:
 - bržoj reakciji na pokušaje prevare,
 - zaštiti korisnika kreditnih kartica.
 
-Model kao ulaz dobija vektor numeričkih obeležja, a kao izlaz vraća binarnu odluku: regularna ili lažna transakcija.
+Model kao ulaz dobija vektor numeričkih obeležja, a kao izlaz vraća binarnu odluku: regularna ili prevarna transakcija.
 
 ---
 
@@ -53,18 +53,16 @@ Za projekat je korišćen standardni benchmark dataset:
 
 **Credit Card Fraud Detection Dataset**
 
-Dataset se učitava direktno sa Google Drive-a u Google Colab okruženju.
+Dataset nije uključen u repozitorijum i može se preuzeti sa Kaggle-a:
 
-Korišćeni fajl:
+```
+https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud
+```
+
+Dataset se nalazi u fajlu:
 
 ```
 creditcard.csv
-```
-
-Putanja u Colab-u:
-
-```
-/content/drive/MyDrive/Colab Notebooks/creditcard.csv
 ```
 
 ### Struktura podataka
@@ -122,7 +120,7 @@ Korišćena je stratifikovana podela kako bi raspodela klasa ostala ista u oba s
 
 U projektu su implementirana i upoređena tri modela:
 
-- osnovi feedforward neuronski model,
+- osnovni feedforward neuronski model,
 - isti model sa class weights (balansiranje klasa),
 - model sa hiperparametarskom optimizacijom putem Keras Tuner-a.
 
@@ -188,7 +186,44 @@ Fiksiran je seed (42) na svim nivoima (`random`, `numpy`, `tensorflow`) radi rep
 
 ---
 
-## 5. Rezultati evaluacije
+## 5. Analiza osetljivosti i hiperparametarska optimizacija
+
+U projektu je urađena analiza osetljivosti kroz eksperimente sa različitim hiperparametrima kako bi se ispitalo kako promene arhitekture utiču na kvalitet klasifikacije. Pored osnovnog modela, analiziran je i uticaj class weights pristupa, kao i različitih kombinacija hiperparametara dobijenih pomoću Keras Tuner RandomSearch algoritma.
+
+Menjani su sledeći hiperparametri:
+
+- broj neurona u prvom Dense sloju,
+- broj neurona u drugom Dense sloju,
+- vrednost Dropout regularizacije u oba sloja,
+- learning rate optimizatora.
+
+Pretraživane konfiguracije putem Keras Tuner RandomSearch (10 pokušaja):
+
+| Hiperparametar | Min vrednost | Max vrednost | Korak |
+|----------------|-------------|-------------|-------|
+| Neuroni u 1. sloju | 32 | 128 | 32 |
+| Neuroni u 2. sloju | 16 | 64 | 16 |
+| Dropout 1 | 0.2 | 0.4 | — |
+| Dropout 2 | 0.2 | 0.4 | — |
+| Learning rate | 0.0001 | 0.001 | — |
+
+Keras Tuner je pronašao sledeće optimalne vrednosti minimizacijom `val_loss` na validacionom skupu:
+
+| Hiperparametar | Pronađena vrednost |
+|----------------|-------------------|
+| Neuroni u 1. sloju | 128 |
+| Dropout 1 | 0.3 |
+| Neuroni u 2. sloju | 64 |
+| Dropout 2 | 0.2 |
+| Learning rate | 0.0001 |
+
+Rezultati pokazuju da povećanje složenosti modela ne mora automatski da dovede do boljeg rezultata — bitno je pažljivo podešavati arhitekturu i pratiti validacione rezultate.
+
+Na osnovu pronađenih vrednosti formiran je konačni model (Model 3), koji je kasnije korišćen za završnu evaluaciju i proglašen najboljim modelom u projektu.
+
+---
+
+## 6. Rezultati evaluacije
 
 Za evaluaciju modela korišćen je test skup koji nije korišćen tokom treniranja.
 
@@ -216,19 +251,19 @@ Korišćene metrike:
 
 **Model 1 (Osnovni):** Savršeno balansiran Precision i Recall (81.63% / 81.63%). Solidan polazni model bez ikakvih tehnika za tretiranje neuravnoteženosti.
 
-**Model 2 (Class Weights):** Recall je skočio na 91.84%, ali Precision je pao na svega 7.08% — model gotovo sve transakcije proglašava prevarom. F1-score od 13.14% potvrđuje da ovaj model nije upotrebljiv u praksi.
+**Model 2 (Class Weights):** Recall je skočio na 91.84%, ali Precision je pao na svega 7.08% — model generiše veliki broj lažno pozitivnih klasifikacija. F1-score od 13.14% potvrđuje da ovaj model nije upotrebljiv u praksi.
 
 **Model 3 (Keras Tuner):** Neznatno bolji Recall od Modela 1 (82.65% vs 81.63%) uz zadržan visok Precision (81.00%). Metodološki najjači pristup zahvaljujući sistematskoj pretrazi hiperparametara.
 
 ### Poređenje ROC krivih
 
-ROC krive sva tri modela su praktično identične (AUC ≈ 0.98). To dokazuje da su sva tri modela naučila istu stvar — razlika u Precision/Recall ne potiče od razlike u naučenom znanju, već od načina na koji svaki model tretira neuravnotežen dataset.
+Slične ROC-AUC vrednosti ukazuju da sva tri modela ostvaruju veoma sličnu sposobnost razdvajanja klasa. Razlike u Precision i Recall metrikama posledica su različitog tretiranja neuravnoteženosti i različitog položaja odlučne granice.
 
 ---
 
-## 6. Diskusija
+## 7. Diskusija
 
-Rezultati pokazuju da se detekcija prevara kreditnih kartica može uspešno rešiti feedforward neuronskim mrežama čak i bez naprednih tehnika balansiranja klasa.
+Rezultati pokazuju da se detekcija prevarnih transakcija kreditnih kartica može uspešno rešiti feedforward neuronskim mrežama čak i bez naprednih tehnika balansiranja klasa.
 
 Model 1 (Osnovni) ostvario je iznenađujuće dobre rezultate bez ikakvih posebnih tehnika za tretiranje neuravnoteženosti. To pokazuje da je dataset, uprkos ekstremnoj neuravnoteženosti, dovoljno informativan — PCA transformisana obeležja V1–V28 nose dovoljno signala za razdvajanje klasa.
 
@@ -242,7 +277,7 @@ Moguća unapređenja projekta su navedena u posebnoj sekciji na kraju dokumenta.
 
 ---
 
-## 7. Zaključak
+## 8. Zaključak
 
 Najbolji model je:
 
@@ -256,7 +291,9 @@ Ostvareni rezultati na test skupu:
 - F1-score = 81.82%
 - ROC-AUC = 98.05%
 
-Model 3 je proglašen najboljim jer ostvaruje najviši Recall (82.65%) uz zadržan visok Precision, što je u kontekstu fraud detection-a ključno — propuštanje prevare skuplje je od lažne uzbune. Pored toga, sistematska hiperparametarska optimizacija putem Keras Tuner-a čini ovaj pristup metodološki najutemeljenijim.
+Model 3 je izabran kao konačni model jer ostvaruje najbolji kompromis između Precision i Recall metrika, uz najveći F1-score među testiranim modelima.
+
+Dobijeni rezultati pokazuju da neuronske mreže predstavljaju efikasan alat za detekciju finansijskih prevara i mogu imati značajnu primenu u realnim finansijskim sistemima.
 
 Sačuvani fajlovi:
 
@@ -265,18 +302,19 @@ Sačuvani fajlovi:
 
 ---
 
-## 8. Moguća unapređenja
+## 9. Moguća unapređenja
 
 - primena SMOTE tehnike za sintetičko balansiranje klasa,
+- primena autoenkodera za anomaly detection pristup,
 - istraživanje optimalnog praga odluke umesto fiksnog 0.5,
-- testiranje LSTM arhitekture za sekvencijalne obrasce transakcija,
+- testiranje XGBoost modela radi poređenja sa neuronskim mrežama,
 - korišćenje Bayesian optimizacije umesto RandomSearch-a,
 - detaljnija analiza pogrešno klasifikovanih primera,
 - dodavanje Batch Normalization slojeva.
 
 ---
 
-## 9. Pokretanje projekta
+## 10. Pokretanje projekta
 
 Projekat je namenjen za pokretanje u Google Colab okruženju.
 
@@ -288,12 +326,14 @@ Otvoriti fajl:
 projekat_DUN.ipynb
 ```
 
-### 2. Podesiti putanju do dataseta
+### 2. Obezbediti dataset
 
-Dataset `creditcard.csv` treba uploadovati na Google Drive na putanju:
+Potrebno je obezbediti fajl `creditcard.csv` i prilagoditi putanju u notebook-u.
+
+Dataset se može preuzeti sa Kaggle-a:
 
 ```
-MyDrive/Colab Notebooks/creditcard.csv
+https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud
 ```
 
 ### 3. Pokrenuti sve ćelije
@@ -321,7 +361,7 @@ Notebook će zatim:
 
 ---
 
-## 10. Korišćene biblioteke
+## 11. Korišćene biblioteke
 
 | Biblioteka | Uloga |
 |------------|-------|
