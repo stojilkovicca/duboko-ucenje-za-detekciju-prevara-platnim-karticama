@@ -97,9 +97,10 @@ Zbog ovako ekstremne neuravnoteženosti, sama accuracy nije dovoljna metrika za 
 Pre treniranja modela urađeni su sledeći koraci:
 
 - učitavanje CSV fajla,
-- provera nedostajućih vrednosti (nema ih ni u jednoj od 31 kolone),
+- provera nedostajućih vrednosti (nisu pronadjene nedostajuce vrednosti),
 - standardizacija kolona `Amount` i `Time` pomoću `StandardScaler`-a,
-- uklanjanje originalnih kolona `Amount` i `Time` nakon skaliranja,
+- dodavanje standardizovanih kolona scaled_Amount i scaled_Time,
+- uklanjanje originalnih kolona Amount i Time,
 - podela na features (`X`) i ciljnu promenljivu (`y`),
 - stratifikovana podela na train i test skup.
 
