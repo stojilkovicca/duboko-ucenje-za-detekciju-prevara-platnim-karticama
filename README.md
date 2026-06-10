@@ -151,6 +151,18 @@ Cilj je bio da model više "kazni" grešku na manjinskoj klasi (prevare) i tako 
 
 Kao treći model korišćena je hiperparametarska optimizacija putem `keras_tuner.RandomSearch`.
 
+Korišćeni slojevi:
+
+| Parametar / sloj | Objašnjenje |
+|-----------------|-------------|
+| Dense | Potpuno povezani sloj koji uči obrasce i veze između ulaznih podataka |
+| ReLU | Aktivaciona funkcija koja omogućava modelu da uči složene nelinearne odnose |
+| Dropout | Slučajno isključuje deo neurona tokom treninga i smanjuje overfitting |
+| Sigmoid | Izlazna aktivaciona funkcija koja vraća verovatnoću pripadnosti klasi prevara |
+| Adam | Optimizacioni algoritam koji podešava težine neuronske mreže tokom učenja |
+| binary_crossentropy | Funkcija greške pogodna za probleme binarne klasifikacije |
+| Accuracy | Metrika koja pokazuje procenat tačno klasifikovanih primera |
+
 Pretraživani hiperparametri:
 
 | Hiperparametar | Opseg vrednosti |
@@ -166,6 +178,8 @@ Konfiguracija pretrage:
 - max_trials: `10`
 - executions_per_trial: `1`
 - objective: `val_loss`
+
+Kao kao kriterijum izbora najboljeg modela korišćena je minimalna vrednost validacione greške (val_loss).
 
 ---
 
