@@ -2,7 +2,7 @@
 
 Tema projekta je automatska detekcija prevarnih transakcija kreditnih kartica pomoću neuronskih mreža. Sistem na osnovu numeričkih obeležja transakcije predviđa da li je ona legitimna ili lažna, na primer:
 
-Ulaz: Vektor od 30 obeležja transakcije (V1–V28, scaled_Amount, scaled_Time)
+Ulaz: Vektor od 30 obeležja transakcije (V1–V28, Amount, Time)
 
 Izlaz: 0 — regularna transakcija / 1 — prevara
 
