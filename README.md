@@ -1,182 +1,323 @@
-# Detekcija finansijskih prevara neuronskim mrežama
+# Detekcija Prevara Kreditnih Kartica pomoću Neuronskih Mreža
 
-Projekat iz predmeta **Duboko učenje i neuronske mreže**.
+Tema projekta je automatska detekcija fraudulentnih transakcija kreditnih kartica pomoću neuronskih mreža. Sistem na osnovu numeričkih obeležja transakcije predviđa da li je ona legitimna ili lažna, na primer:
 
-Cilj projekta je razvoj modela zasnovanog na neuronskim mrežama za detekciju prevarnih transakcija platnim karticama. Korišćen je skup podataka sa Kaggle platforme, a implementacija je realizovana u Python-u korišćenjem TensorFlow/Keras biblioteka.
+Ulaz: Vektor od 30 obeležja transakcije (V1–V28, scaled_Amount, scaled_Time)
 
----
+Izlaz: 0 — regularna transakcija / 1 — prevara
 
-# 1. Opis problema
+Projekat je implementiran u jednom Jupyter Notebook fajlu:
 
-Prevare platnim karticama predstavljaju značajan problem u finansijskom sektoru. Zbog velikog broja transakcija i veoma malog broja prevara, ručno otkrivanje sumnjivih transakcija nije praktično.
+`projekat_DUN.ipynb`
 
-Cilj ovog projekta je izgradnja modela dubokog učenja koji će na osnovu karakteristika transakcije klasifikovati da li se radi o regularnoj transakciji ili prevari.
-
-Radi se o problemu binarne klasifikacije:
-
-- Klasa 0 – regularna transakcija
-- Klasa 1 – prevarna transakcija
+Notebook obuhvata kompletan tok rada: učitavanje podataka, analizu i vizualizaciju, preprocesiranje, treniranje tri modela, hiperparametarsku optimizaciju, evaluaciju i čuvanje najboljeg modela.
 
 ---
 
-# 2. Podaci
+## 1. Opis problema
 
-Korišćen je javno dostupan skup podataka:
+Detekcija prevara kreditnih kartica predstavlja problem binarne klasifikacije na visoko neuravnoteženom datasetu.
 
-https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud
+U realnom platnom sistemu, svaka transakcija se procenjuje i klasifikuje kao legitimna ili lažna. Cilj ovog projekta je da se napravi model koji automatski prepoznaje fraudulentne transakcije na osnovu numeričkih obeležja.
 
-Skup podataka sadrži:
+Primer:
 
-- 284807 transakcija
-- 30 ulaznih karakteristika
-- 492 prevarne transakcije
+Obeležja transakcije:
 
-Karakteristike V1-V28 predstavljaju rezultate PCA transformacije radi zaštite privatnosti korisnika.
+```
+V1=-1.36, V2=0.07, ..., Amount=149.62
+```
 
-Dodatne karakteristike:
+Predviđena klasa:
 
-- Time – vreme proteklo od prve transakcije
-- Amount – iznos transakcije
-- Class – ciljna promenljiva
+```
+0 — Regularna transakcija
+```
 
-Skup podataka je izrazito neuravnotežen, pošto prevarne transakcije čine približno 0.17% svih transakcija.
+Ovakav sistem može da pomogne u:
 
-Pre procesiranja podataka izvršeno je:
+- automatskom blokiranju sumnjivih transakcija,
+- smanjenju finansijskih gubitaka,
+- bržoj reakciji na pokušaje prevare,
+- zaštiti korisnika kreditnih kartica.
 
-- provera nedostajućih vrednosti,
-- analiza distribucije podataka,
-- standardizacija atributa Time i Amount,
-- uklanjanje originalnih kolona Time i Amount,
-- podela na trening i test skup.
-
-Za podelu podataka korišćen je odnos:
-
-- 80% trening skup
-- 20% test skup
-
-uz stratifikaciju ciljnih klasa.
+Model kao ulaz dobija vektor numeričkih obeležja, a kao izlaz vraća binarnu odluku: regularna ili lažna transakcija.
 
 ---
 
-# 3. Arhitektura modela
+## 2. Podaci
 
-U projektu su analizirana tri modela.
+### Izvor podataka
 
-## Model 1 – Osnovni model
+Za projekat je korišćen standardni benchmark dataset:
 
-Arhitektura:
+**Credit Card Fraud Detection Dataset**
 
-- Dense(64)
-- Dropout(0.3)
-- Dense(32)
-- Dropout(0.3)
-- Dense(1)
+Dataset se učitava direktno sa Google Drive-a u Google Colab okruženju.
 
-Aktivacione funkcije:
+Korišćeni fajl:
 
-- ReLU u skrivenim slojevima
-- Sigmoid u izlaznom sloju
+```
+creditcard.csv
+```
 
-Korišćen optimizer:
+Putanja u Colab-u:
 
-- Adam
+```
+/content/drive/MyDrive/Colab Notebooks/creditcard.csv
+```
 
-Funkcija greške:
+### Struktura podataka
 
-- Binary Crossentropy
+Dataset sadrži ukupno:
 
----
+- **284.807** transakcija
+- **31** kolona
 
-## Model 2 – Model sa class weights
+Korišćene kolone:
 
-Kod drugog modela uvedeni su class weights radi povećanja osetljivosti na prevarne transakcije.
+| Kolona | Opis |
+|--------|------|
+| V1 – V28 | PCA transformisana obeležja (anonimizovana) |
+| Amount | Iznos transakcije |
+| Time | Vreme od prve transakcije u datasetu |
+| Class | Ciljna promenljiva: 0 = regularna, 1 = prevara |
 
----
+### Neuravnoteženost klasa
 
-## Model 3 – Hiperparametarski optimizovan model
+Dataset je izrazito neuravnotežen:
 
-Za automatsku optimizaciju hiperparametara korišćen je Keras Tuner.
+| Klasa | Broj primera | Procenat |
+|-------|-------------|----------|
+| 0 — Regularna | 284.315 | 99,83% |
+| 1 — Prevara | 492 | 0,17% |
 
-Najbolja pronađena arhitektura:
+Zbog ovako ekstremne neuravnoteženosti, sama accuracy nije dovoljna metrika za evaluaciju. Model koji sve proglasi regularnim ima 99,83% tačnost, ali ne detektuje nijednu prevaru. Zbog toga su korišćene i metrike Precision, Recall, F1-score i ROC-AUC.
 
-- Dense(128)
-- Dropout(0.3)
-- Dense(64)
-- Dropout(0.2)
-- Dense(1)
+### Preprocesiranje podataka
 
-Learning rate:
+Pre treniranja modela urađeni su sledeći koraci:
 
-- 0.0001
+- učitavanje CSV fajla,
+- provera nedostajućih vrednosti (nema ih ni u jednoj od 31 kolone),
+- standardizacija kolona `Amount` i `Time` pomoću `StandardScaler`-a,
+- uklanjanje originalnih kolona `Amount` i `Time` nakon skaliranja,
+- podela na features (`X`) i ciljnu promenljivu (`y`),
+- stratifikovana podela na train i test skup.
 
----
+### Podela podataka
 
-# 4. Trening
+Podaci su podeljeni stratifikovano na:
 
-Za treniranje modela korišćeni su:
+| Skup | Procenat | Broj primera |
+|------|----------|-------------|
+| Trening skup | 80% | 227.845 |
+| Test skup | 20% | 56.962 |
 
-- batch size = 256
-- maksimalno 20 epoha
-- validation split = 20%
-
-Radi sprečavanja preprilagođavanja korišćen je Early Stopping mehanizam:
-
-- monitor = val_loss
-- patience = 3
-
-Radi reproduktivnosti rezultata korišćeni su fiksirani seed-ovi.
-
----
-
-# 5. Analiza osetljivosti i hiperparametarska optimizacija
-
-Najpre je kreiran osnovni model.
-
-Nakon toga analiziran je uticaj class weights pristupa. Uočeno je povećanje recall metrike, ali i značajan pad precision metrike, što je dovelo do velikog broja lažno pozitivnih klasifikacija.
-
-Zatim je primenjena automatska hiperparametarska optimizacija pomoću Keras Tunera. Analizirane su različite kombinacije:
-
-- broja neurona,
-- dropout parametara,
-- learning rate parametra.
-
-Nakon 10 pokušaja pronađena je arhitektura koja ostvaruje najbolje performanse.
+Korišćena je stratifikovana podela kako bi raspodela klasa ostala ista u oba skupa.
 
 ---
 
-# 6. Rezultati evaluacije
+## 3. Arhitektura modela
 
-Poređenje modela:
+U projektu su implementirana i upoređena tri modela:
 
-| Metrika | Model 1 | Model 2 | Model 3 |
-|----------|---------:|---------:|---------:|
+- osnovi feedforward neuronski model,
+- isti model sa class weights (balansiranje klasa),
+- model sa hiperparametarskom optimizacijom putem Keras Tuner-a.
+
+### Model 1 — Osnovni model
+
+Arhitektura modela:
+
+```
+Ulaz (30 obeležja) → Dense(64, relu) → Dropout(0.3) → Dense(32, relu) → Dropout(0.3) → Dense(1, sigmoid) → Izlaz
+```
+
+Korišćena konfiguracija:
+
+- optimizer: `Adam`
+- loss: `binary_crossentropy`
+- metrics: `accuracy`
+- batch_size: `256`
+- epochs: `20` (uz EarlyStopping)
+
+### Model 2 — Class Weights
+
+Identična arhitektura kao Model 1. Razlika je u tome što su tokom treninga dodeljene težine klasama proporcionalne njihovoj zastupljenosti u datasetu, pomoću `compute_class_weight('balanced')`.
+
+Cilj je bio da model više "kazni" grešku na manjinskoj klasi (prevare) i tako podigne Recall.
+
+### Model 3 — Keras Tuner (RandomSearch)
+
+Kao treći model korišćena je hiperparametarska optimizacija putem `keras_tuner.RandomSearch`.
+
+Pretraživani hiperparametri:
+
+| Hiperparametar | Opseg vrednosti |
+|----------------|----------------|
+| Neuroni u 1. sloju | 32, 64, 96, 128 |
+| Neuroni u 2. sloju | 16, 32, 48, 64 |
+| Dropout 1 | 0.2, 0.3, 0.4 |
+| Dropout 2 | 0.2, 0.3, 0.4 |
+| Learning rate | 0.001, 0.0005, 0.0001 |
+
+Konfiguracija pretrage:
+
+- max_trials: `10`
+- executions_per_trial: `1`
+- objective: `val_loss`
+
+---
+
+## 4. Trening
+
+Za treniranje svih modela korišćen je TensorFlow/Keras u Google Colab okruženju.
+
+Modeli su trenirani nad trening skupom, dok je 20% trening skupa korišćeno kao validacioni skup tokom treniranja.
+
+Korišćeni elementi treninga:
+
+- optimizer: `Adam`
+- loss: `binary_crossentropy`
+- batch_size: `256`
+- epochs: `20`
+- EarlyStopping (monitor: `val_loss`, patience: `3`, restore_best_weights: `True`)
+
+Fiksiran je seed (42) na svim nivoima (`random`, `numpy`, `tensorflow`) radi reproduktibilnosti rezultata.
+
+---
+
+## 5. Rezultati evaluacije
+
+Za evaluaciju modela korišćen je test skup koji nije korišćen tokom treniranja.
+
+Korišćene metrike:
+
+| Metrika | Objašnjenje |
+|---------|-------------|
+| Accuracy | Procenat ukupno tačno klasifikovanih transakcija |
+| Precision | Od svih označenih kao prevara, koliko je stvarno prevara |
+| Recall | Od svih pravih prevara, koliko je model uhvatio |
+| F1-score | Harmonijska sredina Precision i Recall |
+| ROC-AUC | Sposobnost modela da rangira prevare iznad regularnih transakcija |
+
+### Poređenje svih modela
+
+| Metrika | Model 1 (Osnovni) | Model 2 (Class Weights) | Model 3 (Keras Tuner) |
+|---------|:-----------------:|:-----------------------:|:---------------------:|
 | Accuracy | 99.94% | 97.91% | 99.94% |
 | Precision | 81.63% | 7.08% | 81.00% |
 | Recall | 81.63% | 91.84% | 82.65% |
 | F1-score | 81.63% | 13.14% | 81.82% |
 | ROC-AUC | 98.07% | 98.09% | 98.05% |
 
-Kao konačni model izabran je Model 3 dobijen primenom Keras Tunera.
+### Analiza modela
+
+**Model 1 (Osnovni):** Savršeno balansiran Precision i Recall (81.63% / 81.63%). Solidan polazni model bez ikakvih tehnika za tretiranje neuravnoteženosti.
+
+**Model 2 (Class Weights):** Recall je skočio na 91.84%, ali Precision je pao na svega 7.08% — model gotovo sve transakcije proglašava prevarom. F1-score od 13.14% potvrđuje da ovaj model nije upotrebljiv u praksi.
+
+**Model 3 (Keras Tuner):** Neznatno bolji Recall od Modela 1 (82.65% vs 81.63%) uz zadržan visok Precision (81.00%). Metodološki najjači pristup zahvaljujući sistematskoj pretrazi hiperparametara.
+
+### Poređenje ROC krivih
+
+ROC krive sva tri modela su praktično identične (AUC ≈ 0.98). To dokazuje da su sva tri modela naučila istu stvar — razlika u Precision/Recall ne potiče od razlike u naučenom znanju, već od načina na koji svaki model tretira neuravnotežen dataset.
 
 ---
 
-# 7. Diskusija
+## 6. Zaključak
 
-Rezultati pokazuju da povećanje recall metrike može dovesti do značajnog smanjenja precision metrike.
+Najbolji model je:
 
-Model sa class weights pristupom uspeo je da detektuje veći broj prevara, ali uz veliki broj lažno pozitivnih klasifikacija.
+**Model 3 (Keras Tuner)**
 
-Automatska optimizacija hiperparametara omogućila je pronalaženje modela koji ostvaruje najbolji kompromis između precision i recall metrika.
+Ostvareni rezultati na test skupu:
+
+- accuracy = 99.94%
+- precision = 81.00%
+- recall = 82.65%
+- F1-score = 81.82%
+- ROC-AUC = 98.05%
+
+Model 3 je proglašen najboljim jer ostvaruje najviši Recall (82.65%) uz zadržan visok Precision, što je u kontekstu fraud detection-a ključno — propuštanje prevare skuplje je od lažne uzbune. Pored toga, sistematska hiperparametarska optimizacija putem Keras Tuner-a čini ovaj pristup metodološki najutemeljenijim.
+
+Sačuvani fajlovi:
+
+- `credit_card_fraud_model.keras` — sačuvani najbolji model
+- `scaler.pkl` — sačuvani StandardScaler za preprocesiranje novih podataka
 
 ---
 
-# 8. Zaključak
+## 7. Moguća unapređenja
 
-U radu je prikazana primena dubokog učenja za detekciju finansijskih prevara.
+- primena SMOTE tehnike za sintetičko balansiranje klasa,
+- istraživanje optimalnog praga odluke umesto fiksnog 0.5,
+- testiranje LSTM arhitekture za sekvencijalne obrasce transakcija,
+- korišćenje Bayesian optimizacije umesto RandomSearch-a,
+- detaljnija analiza pogrešno klasifikovanih primera,
+- dodavanje Batch Normalization slojeva.
 
-Implementirana su tri različita modela i izvršeno je njihovo poređenje. Najbolje rezultate ostvario je model dobijen primenom Keras Tunera, koji je zbog najvećeg F1-score-a izabran kao konačni model.
+---
 
-Rezultati pokazuju da neuronske mreže mogu predstavljati efikasan alat za detekciju prevarnih transakcija i imati značajnu primenu u finansijskom sektoru.
+## 8. Pokretanje projekta
+
+Projekat je namenjen za pokretanje u Google Colab okruženju.
+
+### 1. Otvoriti notebook
+
+Otvoriti fajl:
+
+```
+projekat_DUN.ipynb
+```
+
+### 2. Podesiti putanju do dataseta
+
+Dataset `creditcard.csv` treba uploadovati na Google Drive na putanju:
+
+```
+MyDrive/Colab Notebooks/creditcard.csv
+```
+
+### 3. Pokrenuti sve ćelije
+
+U Google Colab-u izabrati:
+
+```
+Runtime → Run all
+```
+
+Notebook će zatim:
+
+- učitati dataset,
+- preprocesirati podatke,
+- trenirati sva tri modela,
+- prikazati evaluacione metrike i grafike,
+- sačuvati najbolji model.
+
+### Izlazni fajlovi
+
+| Fajl | Opis |
+|------|------|
+| `credit_card_fraud_model.keras` | Sačuvani Keras model (Model 3) |
+| `scaler.pkl` | Sačuvani StandardScaler objekat |
+
+---
+
+## 9. Korišćene biblioteke
+
+| Biblioteka | Uloga |
+|------------|-------|
+| Python | Programski jezik |
+| TensorFlow / Keras | Izgradnja i trening neuronskih mreža |
+| Keras Tuner | Hiperparametarska optimizacija |
+| scikit-learn | Preprocesiranje i evaluacione metrike |
+| pandas | Upravljanje podacima |
+| NumPy | Numeričke operacije |
+| Matplotlib | Vizualizacija |
+| Seaborn | Vizualizacija |
+| joblib | Čuvanje scaler objekta |
 
 ---
 
