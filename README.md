@@ -179,7 +179,7 @@ Konfiguracija pretrage:
 - executions_per_trial: `1`
 - objective: `val_loss`
 
-Kao kao kriterijum izbora najboljeg modela korišćena je minimalna vrednost validacione greške (val_loss).
+Kao kriterijum izbora najboljeg modela korišćena je minimalna vrednost validacione greške (val_loss).
 
 ---
 
