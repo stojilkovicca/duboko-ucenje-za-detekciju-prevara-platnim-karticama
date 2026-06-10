@@ -332,6 +332,25 @@ Moguća unapređenja projekta su navedena u posebnoj sekciji na kraju dokumenta.
 
 ## 8. Zaključak
 
+U ovom projektu je implementiran kompletan sistem za automatsku detekciju prevarnih transakcija kreditnih kartica pomoću neuronskih mreža.
+
+Tok projekta obuhvata:
+
+1. učitavanje i analizu Credit Card Fraud dataseta,
+2. proveru nedostajućih vrednosti,
+3. standardizaciju kolona Amount i Time,
+4. podelu podataka na trening i test skup,
+5. implementaciju osnovnog neuronskog modela,
+6. implementaciju modela sa class weights pristupom,
+7. hiperparametarsku optimizaciju pomoću Keras Tuner RandomSearch algoritma,
+8. analizu uticaja različitih hiperparametara,
+9. treniranje i validaciju modela,
+10. evaluaciju modela pomoću Accuracy, Precision, Recall, F1-score i ROC-AUC metrika,
+11. poređenje performansi svih modela,
+12. analizu konfuzione matrice i ROC krivih,
+13. izbor najboljeg modela,
+14. čuvanje najboljeg modela i StandardScaler objekta za buduću primenu.
+
 Najbolji model je:
 
 **Model 3 (Keras Tuner)**
@@ -346,7 +365,9 @@ Ostvareni rezultati na test skupu:
 
 Model 3 je izabran kao konačni model jer ostvaruje najbolji kompromis između Precision i Recall metrika, uz najveći F1-score među testiranim modelima.
 
-Dobijeni rezultati pokazuju da neuronske mreže predstavljaju efikasan alat za detekciju finansijskih prevara i mogu imati značajnu primenu u realnim finansijskim sistemima.
+Dobijeni rezultati pokazuju da neuronske mreže predstavljaju efikasan alat za detekciju finansijskih prevara. Sistematska optimizacija hiperparametara omogućila je postizanje najboljeg kompromisa između Precision i Recall metrika, što Model 3 čini najpogodnijim za praktičnu primenu u realnim finansijskim sistemima.
+
+Krajnji rezultat projekta predstavljaju sačuvani model i StandardScaler objekat, koji omogućavaju dalju upotrebu modela za klasifikaciju novih transakcija.
 
 Sačuvani fajlovi:
 
