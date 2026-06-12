@@ -452,7 +452,7 @@ Notebook će zatim:
 
 ## Autor
 
-Aleksandar Stojlković, 2022/0102
+Aleksandar Stojilković, 2022/0102
 
 Fakultet organizacionih nauka
 
